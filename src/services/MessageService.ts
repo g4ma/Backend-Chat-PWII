@@ -5,7 +5,14 @@ const prisma = new PrismaClient();
 
 export class MessageService {
   async sendMessage(data: Message) {
-    return prisma.message.create({ data });
+    return prisma.message.create({
+      data: {
+        senderId: data.senderId,
+        receiverId: data.receiverId,
+        text: data.text,
+        createdAt: data.createdAt,
+      },
+    });
   }
 
   async getMessagesBetweenUsers(userId: number, contactId: number) {
