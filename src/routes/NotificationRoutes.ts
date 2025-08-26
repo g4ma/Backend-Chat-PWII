@@ -5,7 +5,7 @@ export const subscriptions: any[] = [];
 const router = Router();
 
 router.post("/subscribe", (req: Request, res: Response) => {
-    const subscription = req.body;
+    const { subscription, receiverId } = req.body;
     console.log("Subscribe", subscription)
   
     // Evitar duplicadas
@@ -13,7 +13,10 @@ router.post("/subscribe", (req: Request, res: Response) => {
       (sub) => JSON.stringify(sub) === JSON.stringify(subscription)
     );
     if (!exists) {
-      subscriptions.push(subscription);
+      subscriptions.push({
+        subscription,
+        receiverId 
+      });
     }
   
     console.log("Nova subscription recebida:", subscription);

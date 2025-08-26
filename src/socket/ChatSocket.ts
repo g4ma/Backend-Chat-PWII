@@ -19,7 +19,7 @@ export function chatSocket(io: Server) {
       const roomName = [senderId, receiverId].sort().join("-");
       io.to(roomName).emit("receiveMessage", data);
       messageService.sendMessage(data);
-      notificationService.sendNotifications(data.text);
+      notificationService.sendNotifications(data.text, receiverId);
     });
   });
 }

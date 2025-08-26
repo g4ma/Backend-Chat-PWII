@@ -10,15 +10,19 @@ webpush.setVapidDetails(
 
 // When a new message arrives (via WebSocket, DB, etc.)
 export class NotificationService{
-  async sendNotifications(message: string){
-    const sendPromises = subscriptions.map((sub) =>
-    webpush.sendNotification(sub, JSON.stringify({
-      title: "New Message",
-      body: message,
-      url: "http://localhost:5173/chat"
-    })).catch((err) => {
-      console.error("Erro ao enviar:", err);
-    }));
+  async sendNotifications(message: string, receiverId: string){
+    const sendPromises = subscriptions.map((sub) => {
+    console.log(sub)
+    if (sub.receiverId == receiverId){
+      return webpush.sendNotification(sub.subscription, JSON.stringify({
+        title: "New Message",
+        body: message,
+        url: "http://localhost:5173/chat"
+      })).catch((err) => {
+        console.error("Erro ao enviar:", err);
+      })
+    }
+  });
   }
 }
 
