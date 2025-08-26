@@ -1,7 +1,9 @@
 import { Server } from "socket.io";
 import { MessageService } from "../services/MessageService";
+import { NotificationService } from "../services/NotificationService";
 
 const messageService = new MessageService();
+const notificationService = new NotificationService();
 
 export function chatSocket(io: Server) {
   io.on("connection", (socket) => {
@@ -17,6 +19,7 @@ export function chatSocket(io: Server) {
       const roomName = [senderId, receiverId].sort().join("-");
       io.to(roomName).emit("receiveMessage", data);
       messageService.sendMessage(data);
+      notificationService.sendNotifications(data.text);
     });
   });
 }
