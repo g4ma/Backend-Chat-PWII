@@ -1,5 +1,6 @@
 import webpush from "web-push";
 import { subscriptions } from '../routes/NotificationRoutes';
+import { Message } from "../models/Message";
 
 
 webpush.setVapidDetails(
@@ -10,14 +11,16 @@ webpush.setVapidDetails(
 
 // When a new message arrives (via WebSocket, DB, etc.)
 export class NotificationService{
-  async sendNotifications(message: string, receiverId: string){
+  async sendNotifications(data: Message){
     const sendPromises = subscriptions.map((sub) => {
-    console.log(sub)
-    if (sub.receiverId == receiverId){
+    console.log("Sub do usuário: ", sub.receiverId)
+    if (sub.receiverId == data.receiverId){
+      console.log("Enviando notificação", data.text)
       return webpush.sendNotification(sub.subscription, JSON.stringify({
         title: "New Message",
-        body: message,
-        url: "http://localhost:5173/chat"
+        body: data.text,
+        url: "http://localhost:5173/chat",
+        chatId: data.senderId,
       })).catch((err) => {
         console.error("Erro ao enviar:", err);
       })
