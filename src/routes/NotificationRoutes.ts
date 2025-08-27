@@ -1,26 +1,9 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import { NotificationController } from "../controller/NotificationController";
 
-
-export const subscriptions: any[] = [];
 const router = Router();
 
-router.post("/subscribe", (req: Request, res: Response) => {
-    const { subscription, receiverId } = req.body;
-    console.log("Subscribe", subscription)
-  
-    // Evitar duplicadas
-    const exists = subscriptions.find(
-      (sub) => JSON.stringify(sub) === JSON.stringify(subscription)
-    );
-    if (!exists) {
-      subscriptions.push({
-        subscription,
-        receiverId 
-      });
-    }
-  
-    console.log("Nova subscription recebida:", subscription);
-    res.status(201).json({ message: "Subscription salva com sucesso" });
-  });
+router.post("/subscribe", NotificationController.subscribe);
+router.post("/unsubscribe", NotificationController.unsubscribe);
 
 export default router;

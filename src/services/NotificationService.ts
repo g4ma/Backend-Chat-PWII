@@ -1,7 +1,6 @@
 import webpush from "web-push";
-import { subscriptions } from '../routes/NotificationRoutes';
+import redisClient from "../config/redis";
 import { Message } from "../models/Message";
-
 
 webpush.setVapidDetails(
   "mailto:admin@chatbotui.com",
@@ -9,23 +8,35 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE!
 );
 
-// When a new message arrives (via WebSocket, DB, etc.)
-export class NotificationService{
-  async sendNotifications(data: Message){
-    const sendPromises = subscriptions.map((sub) => {
-    console.log("Sub do usuário: ", sub.receiverId)
-    if (sub.receiverId == data.receiverId){
-      console.log("Enviando notificação", data.text)
-      return webpush.sendNotification(sub.subscription, JSON.stringify({
-        title: "New Message",
-        body: data.text,
-        url: "http://localhost:5173/chat",
-        chatId: data.senderId,
-      })).catch((err) => {
+export class NotificationService {
+  async sendNotifications(data: Message) {
+    const key = `subscriptions:${data.receiverId}`;
+    const subs = await redisClient.sMembers(key); // pega todas as subs do usuário
+
+    const sendPromises = subs.map(async (subString) => {
+      const sub = JSON.parse(subString);
+
+      try {
+        await webpush.sendNotification(
+          sub,
+          JSON.stringify({
+            title: "New Message",
+            body: data.text,
+            url: "http://localhost:5173/chat",
+            chatId: data.senderId,
+          })
+        );
+      } catch (err: any) {
         console.error("Erro ao enviar:", err);
-      })
-    }
-  });
+
+        // Se a subscription for inválida, remove do Redis
+        if (err.statusCode === 404 || err.statusCode === 410) {
+          console.log("Removendo subscription inválida do Redis");
+          await redisClient.sRem(key, subString);
+        }
+      }
+    });
+
+    await Promise.all(sendPromises);
   }
 }
-
