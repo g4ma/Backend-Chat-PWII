@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import userRoutes from "./routes/UserRoutes";
 import messageRoutes from "./routes/MessageRoutes";
+import notificationRoutes from './routes/NotificationRoutes';
 import { chatSocket } from "./socket/ChatSocket";
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use("/users", userRoutes);
 app.use("/messages", messageRoutes);
+app.use("/notification", notificationRoutes)
 
 chatSocket(io);
 

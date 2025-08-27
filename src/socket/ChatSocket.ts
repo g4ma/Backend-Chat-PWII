@@ -1,7 +1,10 @@
 import { Server } from "socket.io";
 import { MessageService } from "../services/MessageService";
+import { NotificationService } from "../services/NotificationService";
 
 const messageService = new MessageService();
+
+const notificationService = new NotificationService();
 const onlineUsers = new Map<number, string>();
 
 export function chatSocket(io: Server) {
@@ -17,6 +20,7 @@ export function chatSocket(io: Server) {
       const { senderId, receiverId } = data;
 
       await messageService.sendMessage(data);
+      
 
       const emitIfOnline = (userId: number) => {
         const userSocket = onlineUsers.get(userId);
@@ -30,6 +34,8 @@ export function chatSocket(io: Server) {
       emitIfOnline(receiverId);
 
       console.log("Mensagem enviada:", data);
+      
+      notificationService.sendNotifications(data);
     });
 
     socket.on("disconnect", () => {
