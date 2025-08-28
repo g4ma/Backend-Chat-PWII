@@ -9,43 +9,19 @@ const onlineUsers = new Map<number, string>();
 
 export function chatSocket(io: Server) {
   io.on("connection", (socket) => {
-    console.log("Novo socket conectado:", socket.id);
-
-    socket.on("register", (userId: number) => {
-      onlineUsers.set(userId, socket.id);
-      console.log(`Usuário ${userId} registrado com socket ${socket.id}`);
+    socket.on("joinRoom", ({ userId, contactId }) => {
+      const roomName = [userId, contactId].sort().join("-");
+      socket.join(roomName);
     });
 
-    socket.on("sendMessage", async (data) => {
+    socket.on("sendMessage", (data) => {
+      console.log("Mensagem recebida no servidor:", data);
+
       const { senderId, receiverId } = data;
-
-      await messageService.sendMessage(data);
-      
-
-      const emitIfOnline = (userId: number) => {
-        const userSocket = onlineUsers.get(userId);
-        if (userSocket) {
-          io.to(userSocket).emit("receiveMessage", data);
-        }
-      };
-
-      emitIfOnline(senderId);
-
-      emitIfOnline(receiverId);
-
-      console.log("Mensagem enviada:", data);
-      
+      const roomName = [senderId, receiverId].sort().join("-");
+      io.to(roomName).emit("receiveMessage", data);
+      messageService.sendMessage(data);
       notificationService.sendNotifications(data);
-    });
-
-    socket.on("disconnect", () => {
-      for (const [userId, id] of onlineUsers.entries()) {
-        if (id === socket.id) {
-          onlineUsers.delete(userId);
-          console.log(`Usuário ${userId} desconectado`);
-          break;
-        }
-      }
     });
   });
 }
