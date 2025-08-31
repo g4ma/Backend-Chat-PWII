@@ -5,7 +5,8 @@
 
 - [Equipe](#equipe)
 - [Descrição da Atividade](#descrição-da-atividade)
-- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+- [Decisões técnicas adotadas](#decisões-técnicas-adotadas)
+- [Arquitetura](#arquitetura)
 - [Executando o projeto](#executando-o-projeto)
 - [Documentação](#documentacao)
 
@@ -19,10 +20,62 @@
 
 Este repositório contém o backend da aplicação WebChat, desenvolvida como parte da disciplina de Programação para Web II, com o objetivo de demonstrar na prática os principais conceitos estudados. O frontend dessa aplicação pode ser acessado [aqui](https://github.com/g4ma/Frontend-Chat-PWII)
 
-## Tecnologias Utilizadas
 
-O projeto foi desenvolvido usando o framework express, a linguagem escolhida foi o TypeScript, que oferece tipagem estática e maior segurança no desenvolvimento em comparação ao JavaScript puro. A funcionalidade pricipal de chat foi desenvolvida baseada no protocolo WebSocket, tendo sido utilizada a biblioteca socket.io para abstrair a implementação. Para a funcionalidade de Push Notifications foi utilizada a biblioteca web-push. Para o gerenciamento eficiente das inscrições de notificações, optou-se pelo uso do Redis, banco de dados em memória que garante alta performance e escalabilidade. Para a execução do serviço do Redis foi utilizado o Docker, para facilitar ainda mais a utilização do banco. Por fim, foi utilizado o ORM Prisma para o gerenciamento do banco de dados sqlite.
+## Decisões Técnicas Adotadas
 
+- Express 
+
+Optamos pelo Express por ser um framework minimalista, flexível e amplamente utilizado no ecossistema Node.js. Ele oferece a estrutura necessária para criar rotas, middlewares e integrações de forma simples, além de contar com uma comunidade ativa que facilita a resolução de problemas.
+
+- TypeScript 
+
+A decisão de usar TypeScript foi tomada para aumentar a robustez do backend com tipagem estática, reduzindo erros comuns em tempo de execução e tornando o código mais legível e seguro para manutenção a longo prazo.
+
+- Comunicação em tempo real com WebSocket (socket.io)
+
+Para a funcionalidade de chat, escolhemos o WebSocket, que garante comunicação bidirecional e em tempo real, essencial em uma aplicação de mensagens. A biblioteca socket.io foi adotada para abstrair a implementação, simplificar a reconexão automática, lidar com fallback em caso de falha e oferecer uma API mais prática do que a implementação nativa de WebSocket.
+
+- Push Notifications com web-push
+
+A biblioteca web-push foi utilizada para gerenciar o envio de notificações pelo protocolo Web Push Protocol, abstraindo detalhes como criptografia e autenticação de mensagens. Isso garantiu confiabilidade e segurança no envio das notificações aos navegadores.
+
+- Gerenciamento de inscrições com Redis
+
+Inicialmente, as inscrições de usuários eram mantidas em memória local, o que não era escalável em cenários de múltiplos servidores. Por isso, adotamos o Redis, um banco de dados em memória com alta performance, permitindo gerenciar inscrições de forma persistente e eficiente. Essa decisão foi crucial para garantir escalabilidade horizontal da aplicação.
+
+- Execução do Redis com Docker
+
+Para padronizar ambientes e facilitar a configuração entre diferentes máquinas de desenvolvimento, utilizamos o Docker para executar o serviço do Redis. Essa decisão eliminou dependências manuais, simplificou a inicialização do projeto e aumentou a reprodutibilidade em diferentes sistemas operacionais.
+
+- Prisma ORM com SQLite
+
+Para persistência de dados, escolhemos o Prisma como ORM devido à sua tipagem forte, suporte a migrações automáticas e facilidade de integração com TypeScript. O SQLite foi adotado por ser um banco de dados leve e embutido, adequado para o escopo do projeto acadêmico, sem a necessidade de um servidor dedicado.
+
+## Arquitetura
+
+![Arquitetura backend](./assets/Backend.png)
+
+A arquitetura do sistema é dividida em frontend e backend, interligados tanto por requisições HTTP quanto por comunicação em tempo real via WebSocket.
+
+No backend, a estrutura segue um padrão em camadas:
+
+- A camada de rotas (Routes) define os pontos de entrada da aplicação, com rotas específicas para mensagens, usuários e notificações.
+
+- Essas rotas direcionam as requisições para a camada de controllers (Controller), responsável por orquestrar a lógica de cada funcionalidade. Nela estão os controladores de mensagens, usuários e notificações.
+
+- Em seguida, a lógica de negócio é centralizada na camada de serviços (Service), que encapsula as regras específicas de cada domínio: UserService, MessageService e NotificationService.
+
+- Esses serviços interagem com a camada de modelos (Model), que representa as entidades principais da aplicação, como User e Message.
+
+Para persistência e integração com serviços externos, o backend utiliza diferentes ferramentas:
+
+- O Prisma ORM interage diretamente com o banco de dados SQLite, simplificando consultas e mapeamento objeto-relacional.
+
+- O Redis, executado em container via Docker, é responsável por armazenar de forma performática as inscrições dos usuários para notificações, garantindo escalabilidade.
+
+A biblioteca Web-Push é utilizada para envio das notificações.
+
+Além da arquitetura baseada em rotas e serviços, o sistema conta com um módulo de Socket.IO, que gerencia a comunicação em tempo real entre cliente e servidor. Esse módulo é composto por um servidor dedicado (Server), um gerenciador de conexões (IO Server) e um manipulador específico para as interações do chat (ChatSocket). É por meio desse fluxo que ocorre a troca de mensagens instantâneas entre os usuários.
 
 ## Executando o projeto
 
